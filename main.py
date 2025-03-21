@@ -146,7 +146,26 @@ async def get_file_embed(id:int,file:str):
     with open(get_existing_filepath(id,file),'rb') as f:
         content = f.read()
         if file.endswith('.png'):
-            return Response(content,media_type="image/png")
+            title = os.environ.get("EMBED_TITLE","File Sharing")
+            
+            cont = f"""
+<html>
+    <head>
+        <meta property="og:title" content="{title}" />
+        <meta property="og:description" content="**Content**: 
+{content.decode()}" />
+        <meta property="og:image" content="/files/{id}/{file}" />
+        <meta property="og:url" content="/" />
+        <meta property="og:type" content="website" />
+    </head>
+    <body>
+        Nothing to see here... maybe go to <a href="/docs">/docs?</a><br><br>
+        Or view the file <a href="/files/{id}/{file}">here</a>.<br><br>
+        Actually, Heres a preview: <img src="/files/{id}/{file}" alt="Preview not available">
+    </body>
+</html>
+            """
+            return Response(cont,media_type="text/html")
         else:
             title = os.environ.get("EMBED_TITLE","File Sharing")
             
@@ -154,12 +173,13 @@ async def get_file_embed(id:int,file:str):
 <html>
     <head>
         <meta property="og:title" content="{title}" />
-        <meta property="og:description" content="```{content.decode()}```" />
+        <meta property="og:description" content="{content.decode()}" />
         <meta property="og:url" content="/" />
         <meta property="og:type" content="website" />
     </head>
     <body>
-        Nothing to see here... maybe go to <a href="/docs">/docs?</a>
+        Nothing to see here... maybe go to <a href="/docs">/docs?</a><br><br>
+        Or view the file <a href="/files/{id}/{file}">here</a>.
     </body>
 </html>
             """

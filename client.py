@@ -27,16 +27,24 @@ elif args.action == "profile":
     print(json.dumps(r.json(),indent=4))
     
 elif args.action == "upload":
-    r = requests.post(f"{args.baseurl}/up/{args.body.get("format","txt")}/{args.body.get("filename",random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"))}",headers={"Content-Type":"application/json", "Authorization": "Bearer " + os.environ.get("CLITOKEN",""),"data": args.body.get("data","")})
+    # format:str["txt"|"png"]
+    # filename: str
+    # data: bytes
+    with open(args.body.get("data",""),"rb") as f:
+        data = f.read()
+    r = requests.post(f"{args.baseurl}/up/{args.body.get("format","txt")}/{args.body.get("filename",random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"))}",headers={"Content-Type":"application/json", "Authorization": "Bearer " + os.environ.get("CLITOKEN",""),"data": data})
     print(os.environ.get("CLITOKEN",""))
     print(r.content)
 
 elif args.action == "delete":
+    # filename: str
     if args.body.get("filename",None) is None:
         raise Exception("You need to specify the filename!")
     r = requests.post(f"{args.baseurl}/del/{args.body.get("filename")}",headers={"Content-Type":"application/json", "Authorization": "Bearer " + os.environ.get("CLITOKEN","")})
 
 elif args.action == "get":
+    # id: int (user id)
+    # filename: str
     r = requests.get(f"{args.baseurl}/files/{args.body.get("id",0)}/{args.body.get("filename","")}")
     print(r.content)
     if args.body.get("save"):
