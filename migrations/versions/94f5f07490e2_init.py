@@ -30,7 +30,7 @@ def upgrade() -> None:
     sa.UniqueConstraint('username')
     )
     op.create_table('file',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('filename', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('owner_id', sa.Integer(), nullable=False),
     sa.Column('uploaded_at', sa.Integer(), nullable=False),

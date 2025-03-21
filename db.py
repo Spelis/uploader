@@ -41,7 +41,7 @@ class User(UserCredentials, table=True):
 
 
 class File(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: str = Field(default=None, primary_key=True)
     filename: str
     owner_id: int = Field(foreign_key="user.id")
     uploaded_at: int = Field(
