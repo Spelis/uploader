@@ -1,3 +1,4 @@
+import base64
 from http.client import TOO_EARLY
 from pathlib import Path
 import random
@@ -32,7 +33,7 @@ elif args.action == "upload":
     # data: bytes
     with open(args.body.get("data",""),"rb") as f:
         data = f.read()
-    r = requests.post(f"{args.baseurl}/up/{args.body.get("format","txt")}/{args.body.get("filename",random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"))}",headers={"Content-Type":"application/json", "Authorization": "Bearer " + os.environ.get("CLITOKEN",""),"data": data})
+    r = requests.post(f"{args.baseurl}/up/{args.body.get("format","txt")}/{args.body.get("filename",random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"))}",headers={"Content-Type":"application/json", "Authorization": "Bearer " + os.environ.get("CLITOKEN",""),"data": base64.b64encode(data)})
     print(os.environ.get("CLITOKEN",""))
     print(r.content)
 

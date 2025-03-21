@@ -117,7 +117,7 @@ async def upload(credentials: UserDependency,session: SessionDep,data: Annotated
         return {"success": "Image saved successfully", "saved_to": fp}
     if fmt == "txt":
         with open(fp,"w") as f:
-            f.write(data)
+            f.write(base64.b64decode(data).decode())
         return {"success": "Text saved successfully", "saved_to": fp}
     else:
         return {"error": "Invalid format; Available formats: img, txt"}
