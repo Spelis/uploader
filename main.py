@@ -141,6 +141,30 @@ async def get_file(id, file:str):
             return Response(content,media_type="text/plain")
         return content
     
+@app.get("/embed/{id}/{file}")
+async def get_file_embed(id:int,file:str):
+    with open(get_existing_filepath(id,file),'rb') as f:
+        content = f.read()
+        if file.endswith('.png'):
+            return Response(content,media_type="image/png")
+        else:
+            title = os.environ.get("EMBED_TITLE","File Sharing")
+            
+            cont = f"""
+<html>
+    <head>
+        <meta property="og:title" content="{title}" />
+        <meta property="og:description" content="```{content.decode()}```" />
+        <meta property="og:url" content="/" />
+        <meta property="og:type" content="website" />
+    </head>
+    <body>
+        Nothing to see here... maybe go to <a href="/docs">/docs?</a>
+    </body>
+</html>
+            """
+            return Response(cont,media_type="text/html")
+        return content
     
 """
 HOW TO USE ALEMBIC:
