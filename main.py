@@ -152,8 +152,6 @@ async def get_file_embed(id:int,file:str):
 <html>
     <head>
         <meta property="og:title" content="{title}" />
-        <meta property="og:description" content="**Content**: 
-{content.decode()}" />
         <meta property="og:image" content="/files/{id}/{file}" />
         <meta property="og:url" content="/" />
         <meta property="og:type" content="website" />
