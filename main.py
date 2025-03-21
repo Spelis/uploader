@@ -128,8 +128,8 @@ async def delete(credentials: UserDependency,session: SessionDep, name:str):
     file = result.one()
     fp = get_existing_filepath(credentials.id,file.filename)
     await session.delete(file)
-    os.remove(fp)
     await session.commit()
+    os.remove(fp)
     
 @app.get("/files/{id}/{file}")
 async def get_file(id, file:str):
