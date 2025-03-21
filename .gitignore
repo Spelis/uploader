@@ -1,0 +1,9 @@
+.vscode
+.venv
+files
+migrations
+avatars
+temp
+__pycache__
+uploader.db
+.env

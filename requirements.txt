@@ -1,0 +1,9 @@
+fastapi[standard]
+sqlmodel
+fastapi-limiter
+uvicorn
+black
+isort
+python-jose
+alembic
+Pillow
