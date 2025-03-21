@@ -107,7 +107,7 @@ async def register(credentials: UserCredentials, session: SessionDep):
 @app.post("/up/{fmt}/{name}")
 async def upload(credentials: UserDependency,session: SessionDep,data: Annotated[str | bytes, Header()],fmt:str,name:str):
     fp = get_filepath(credentials.id,name)
-    file = File(id=hash(os.listdir(f"files/{credentials.id}/{name}{fmt}")),filename=name,owner_id=credentials.id,uploaded_at=round(datetime.now(timezone.utc).timestamp()))
+    file = File(id=hash(f"files/{credentials.id}/{name}{fmt}"),filename=name,owner_id=credentials.id,uploaded_at=round(datetime.now(timezone.utc).timestamp()))
     session.add(file)
     await session.commit()
     await session.refresh(file)
