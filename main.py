@@ -121,6 +121,15 @@ async def upload(credentials: UserDependency,session: SessionDep,data: Annotated
     else:
         return {"error": "Invalid format; Available formats: img, txt"}
     
+@app.post("/del/{name}")
+async def delete(credentials: UserDependency,session: SessionDep, name:str):
+    result = await session.exec(select(File).where(File.filename==name))
+    file = result.one()
+    fp = get_existing_filepath(credentials.id,file.filename)
+    await session.delete(file)
+    os.remove(fp)
+    await session.commit()
+    
 @app.get("/files/{id}/{file}")
 async def get_file(id, file:str):
     with open(get_existing_filepath(id,file),'rb') as f:
@@ -128,8 +137,10 @@ async def get_file(id, file:str):
         if file.endswith('.png'):
             return Response(content,media_type="image/png")
         else:
-            return content.decode('utf-8')
+            return Response(content,media_type="text/plain")
         return content
+    
+    
 """
 HOW TO USE ALEMBIC:
 
