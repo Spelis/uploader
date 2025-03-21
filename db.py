@@ -21,6 +21,14 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with async_session() as session:
         yield session
+        
+async def get_files_by_user(owner_id):
+    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with async_session() as session:
+        from sqlmodel import select
+        statement = select(File).where(File.owner_id == owner_id)
+        result = await session.execute(statement)
+        return result.scalars().all()
 
 
 class UserCredentials(SQLModel):

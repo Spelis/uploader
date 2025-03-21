@@ -14,7 +14,7 @@ import random
 from PIL import Image
 import base64
 
-from db import SessionDep, User, UserCredentials
+from db import File, SessionDep, User, UserCredentials, get_files_by_user
 
 security = HTTPBearer()
 
@@ -43,13 +43,13 @@ async def get_user_session(db: SessionDep, credentials: CredentialsDependency) -
         raise HTTPException(status_code=401, detail="Invalid token")
     return user
 
-def get_filepath(id:int):
+def get_filepath(id:int,name:str):
     os.makedirs(f"files/{id}/", exist_ok=True)
-    return f"files/{id}/{round(datetime.now().timestamp()*1000)}"
+    return f"files/{id}/{name}"
 
-def get_existing_filepath(id:int,ts:int):
+def get_existing_filepath(id:int,name:str):
     os.makedirs(f"files/{id}/", exist_ok=True) # avoid errors
-    return f"files/{id}/{ts}"
+    return f"files/{id}/{name}"
 
 
 UserDependency = Annotated[User, Depends(get_user_session)]
@@ -66,11 +66,18 @@ async def read_root():
 @app.post("/me")  # requires auth
 async def user_info(user: UserDependency):
     #return user
-    return {"passwd": user.password, "username": user.username, "ID": user.id, "files": os.listdir(f"files/{user.id}/"), "help":[
+    filesobj = {}
+    files_iter:list[File] = await get_files_by_user(user.id)
+    for i in files_iter:
+        filesobj[i.filename] = {
+            "id": i.id,
+            "created_at": datetime.fromtimestamp(i.uploaded_at,timezone.utc).strftime(r"%a %b %d %Y %I:%M:%S %p")
+        }
+    return {"passwd": user.password, "username": user.username, "ID": user.id, "files": filesobj, "help":[
         "POST /login",
         "POST /register",
         "POST /me",
-        "POST /up/{fmt}",
+        "POST /up/{fmt}/{name}",
         "GET  /files/{id}/{file}"
     ]}
 
@@ -96,13 +103,17 @@ async def register(credentials: UserCredentials, session: SessionDep):
     await session.refresh(user)
     return {"token": generate_jwt_token(user)}
 
-@app.post("/up/{fmt}")
-async def upload(credentials: UserDependency,data: Annotated[str | bytes, Header()],fmt:str):
-    fp = get_filepath(credentials.id)
+@app.post("/up/{fmt}/{name}")
+async def upload(credentials: UserDependency,session: SessionDep,data: Annotated[str | bytes, Header()],fmt:str,name:str):
+    fp = get_filepath(credentials.id,name)
+    file = File(id=len(os.listdir(f"files/{credentials.id}/")),filename=name,owner_id=credentials.id,uploaded_at=round(datetime.now(timezone.utc).timestamp()))
+    session.add(file)
+    await session.commit()
+    await session.refresh(file)
     if fmt == "img":
-        with open(fp + ".png", "wb") as f:
+        with open(fp, "wb") as f:
             f.write(base64.b64decode(data))
-        return {"success": "Image saved successfully", "saved_to": fp + ".png"}
+        return {"success": "Image saved successfully", "saved_to": fp}
     if fmt == "txt":
         with open(fp,"w") as f:
             f.write(data)
