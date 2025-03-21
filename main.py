@@ -78,6 +78,7 @@ async def user_info(user: UserDependency):
         "POST /register",
         "POST /me",
         "POST /up/{fmt}/{name}",
+        "POST /del/{name}",
         "GET  /files/{id}/{file}"
     ]}
 
