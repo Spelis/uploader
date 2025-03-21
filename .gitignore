@@ -1,7 +1,6 @@
 .vscode
 .venv
 files
-migrations
 avatars
 temp
 __pycache__
