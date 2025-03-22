@@ -1,5 +1,4 @@
 import base64
-from http.client import TOO_EARLY
 from pathlib import Path
 import random
 from dotenv import set_key, load_dotenv
