@@ -114,22 +114,29 @@ async def upload(credentials: UserDependency,session: SessionDep,data: Annotated
     if fmt == "img":
         with open(fp, "wb") as f:
             f.write(base64.b64decode(data))
-        return {"success": "Image saved successfully", "saved_to": fp}
+        return {"success": "Image saved successfully", "saved_to": fp, "share_url": "/embed/{credentials.id}/{name}"}
     if fmt == "txt":
         with open(fp,"w") as f:
             f.write(base64.b64decode(data).decode())
-        return {"success": "Text saved successfully", "saved_to": fp}
+        return {"success": "Text saved successfully", "saved_to": fp, "share_url": "/embed/{credentials.id}/{name}"}
     else:
         return {"error": "Invalid format; Available formats: img, txt"}
     
 @app.post("/del/{name}")
 async def delete(credentials: UserDependency,session: SessionDep, name:str):
-    result = await session.exec(select(File).where(File.filename==name))
-    file = result.one()
-    fp = get_existing_filepath(credentials.id,file.filename)
-    await session.delete(file)
-    await session.commit()
-    os.remove(fp)
+    try:
+        result = await session.exec(select(File).where(File.filename==name))
+        file = result.one()
+        fp = get_existing_filepath(credentials.id,file.filename)
+        await session.delete(file)
+        await session.commit()
+        try:
+            os.remove(fp)
+        except:
+            pass
+    except:
+        pass
+    
     
 @app.get("/files/{id}/{file}")
 async def get_file(id, file:str):
@@ -172,7 +179,7 @@ async def get_file_embed(id:int,file:str):
 <html>
     <head>
         <meta property="og:title" content="{title}" />
-        <meta property="og:description" content="**Content:**
+        <meta property="og:description" content="Content:
 {content.decode()}" />
         <meta property="og:url" content="/" />
         <meta property="og:type" content="website" />
