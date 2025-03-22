@@ -89,6 +89,7 @@ async def user_info(user: UserDependency):
             "POST /up/{fmt}/{name}",
             "POST /del/{name}",
             "GET  /files/{id}/{file}",
+            "GET  /embed/{id}/{file}"
         ],
     }
 
@@ -139,7 +140,7 @@ async def upload(
         return {
             "success": "Image saved successfully",
             "saved_to": fp,
-            "share_url": "/embed/{credentials.id}/{name}",
+            "share_url": f"/embed/{credentials.id}/{name}",
         }
     if fmt == "txt":
         with open(fp, "w") as f:
@@ -147,7 +148,7 @@ async def upload(
         return {
             "success": "Text saved successfully",
             "saved_to": fp,
-            "share_url": "/embed/{credentials.id}/{name}",
+            "share_url": f"/embed/{credentials.id}/{name}",
         }
     else:
         return {"error": "Invalid format; Available formats: img, txt"}
