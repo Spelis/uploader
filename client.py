@@ -5,7 +5,7 @@ import random
 from dotenv import set_key, load_dotenv
 import requests, os, argparse,json
 
-scriptpath = Path(__file__).parent
+scriptpath = Path(__file__).parent # make sure it can be called from anywhere
 envpath = scriptpath / ".env"
 load_dotenv(envpath)
 token = os.environ.get("CLITOKEN", None)
@@ -19,6 +19,8 @@ args = ap.parse_args()
 args.body = dict(map(lambda x: tuple(x.split("=")), args.body))
 
 if args.action in ("login", "register"): # pretty much the same approach.
+    # username: str
+    # password: str
     r = requests.post(f"{args.baseurl}/{args.action}",json=args.body,headers={"Content-Type":"application/json"})
     c = r.json()
     set_key(envpath,"CLITOKEN",c['token'])

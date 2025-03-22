@@ -151,6 +151,7 @@ async def get_file_embed(id:int,file:str):
             cont = f"""
 <html>
     <head>
+        <meta name="twitter:card" content="summary_large_image">
         <meta property="og:title" content="{title}" />
         <meta property="og:image" content="/files/{id}/{file}" />
         <meta property="og:url" content="/" />
@@ -171,7 +172,8 @@ async def get_file_embed(id:int,file:str):
 <html>
     <head>
         <meta property="og:title" content="{title}" />
-        <meta property="og:description" content="{content.decode()}" />
+        <meta property="og:description" content="**Content:**
+{content.decode()}" />
         <meta property="og:url" content="/" />
         <meta property="og:type" content="website" />
     </head>
