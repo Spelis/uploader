@@ -43,12 +43,14 @@ async def get_user_session(db: SessionDep, credentials: CredentialsDependency) -
         raise HTTPException(status_code=401, detail="Invalid token")
     return user
 
-def get_filepath(id:int,name:str):
+
+def get_filepath(id: int, name: str):
     os.makedirs(f"files/{id}/", exist_ok=True)
     return f"files/{id}/{name}"
 
-def get_existing_filepath(id:int,name:str):
-    os.makedirs(f"files/{id}/", exist_ok=True) # avoid errors
+
+def get_existing_filepath(id: int, name: str):
+    os.makedirs(f"files/{id}/", exist_ok=True)  # avoid errors
     return f"files/{id}/{name}"
 
 
@@ -65,22 +67,30 @@ async def read_root():
 
 @app.post("/me")  # requires auth
 async def user_info(user: UserDependency):
-    #return user
+    # return user
     filesobj = {}
-    files_iter:list[File] = await get_files_by_user(user.id)
+    files_iter: list[File] = await get_files_by_user(user.id)
     for i in files_iter:
         filesobj[i.filename] = {
             "id": i.id,
-            "created_at": datetime.fromtimestamp(i.uploaded_at,timezone.utc).strftime(r"%a %b %d %Y %I:%M:%S %p")
+            "created_at": datetime.fromtimestamp(i.uploaded_at, timezone.utc).strftime(
+                r"%a %b %d %Y %I:%M:%S %p"
+            ),
         }
-    return {"passwd": user.password, "username": user.username, "ID": user.id, "files": filesobj, "help":[
-        "POST /login",
-        "POST /register",
-        "POST /me",
-        "POST /up/{fmt}/{name}",
-        "POST /del/{name}",
-        "GET  /files/{id}/{file}"
-    ]}
+    return {
+        "passwd": user.password,
+        "username": user.username,
+        "ID": user.id,
+        "files": filesobj,
+        "help": [
+            "POST /login",
+            "POST /register",
+            "POST /me",
+            "POST /up/{fmt}/{name}",
+            "POST /del/{name}",
+            "GET  /files/{id}/{file}",
+        ],
+    }
 
 
 @app.post("/login")
@@ -104,30 +114,51 @@ async def register(credentials: UserCredentials, session: SessionDep):
     await session.refresh(user)
     return {"token": generate_jwt_token(user)}
 
+
 @app.post("/up/{fmt}/{name}")
-async def upload(credentials: UserDependency,session: SessionDep,data: Annotated[str | bytes, Header()],fmt:str,name:str):
-    fp = get_filepath(credentials.id,name)
-    file = File(id=hash(f"files/{credentials.id}/{name}{fmt}"),filename=name,owner_id=credentials.id,uploaded_at=round(datetime.now(timezone.utc).timestamp()))
+async def upload(
+    credentials: UserDependency,
+    session: SessionDep,
+    data: Annotated[str | bytes, Header()],
+    fmt: str,
+    name: str,
+):
+    fp = get_filepath(credentials.id, name)
+    file = File(
+        id=hash(f"files/{credentials.id}/{name}{fmt}"),
+        filename=name,
+        owner_id=credentials.id,
+        uploaded_at=round(datetime.now(timezone.utc).timestamp()),
+    )
     session.add(file)
     await session.commit()
     await session.refresh(file)
     if fmt == "img":
         with open(fp, "wb") as f:
             f.write(base64.b64decode(data))
-        return {"success": "Image saved successfully", "saved_to": fp, "share_url": "/embed/{credentials.id}/{name}"}
+        return {
+            "success": "Image saved successfully",
+            "saved_to": fp,
+            "share_url": "/embed/{credentials.id}/{name}",
+        }
     if fmt == "txt":
-        with open(fp,"w") as f:
+        with open(fp, "w") as f:
             f.write(base64.b64decode(data).decode())
-        return {"success": "Text saved successfully", "saved_to": fp, "share_url": "/embed/{credentials.id}/{name}"}
+        return {
+            "success": "Text saved successfully",
+            "saved_to": fp,
+            "share_url": "/embed/{credentials.id}/{name}",
+        }
     else:
         return {"error": "Invalid format; Available formats: img, txt"}
-    
+
+
 @app.post("/del/{name}")
-async def delete(credentials: UserDependency,session: SessionDep, name:str):
+async def delete(credentials: UserDependency, session: SessionDep, name: str):
     try:
-        result = await session.exec(select(File).where(File.filename==name))
+        result = await session.exec(select(File).where(File.filename == name))
         file = result.one()
-        fp = get_existing_filepath(credentials.id,file.filename)
+        fp = get_existing_filepath(credentials.id, file.filename)
         await session.delete(file)
         await session.commit()
         try:
@@ -136,25 +167,26 @@ async def delete(credentials: UserDependency,session: SessionDep, name:str):
             pass
     except:
         pass
-    
-    
+
+
 @app.get("/files/{id}/{file}")
-async def get_file(id, file:str):
-    with open(get_existing_filepath(id,file),'rb') as f:
+async def get_file(id, file: str):
+    with open(get_existing_filepath(id, file), "rb") as f:
         content = f.read()
-        if file.endswith('.png'):
-            return Response(content,media_type="image/png")
+        if file.endswith(".png"):
+            return Response(content, media_type="image/png")
         else:
-            return Response(content,media_type="text/plain")
+            return Response(content, media_type="text/plain")
         return content
-    
+
+
 @app.get("/embed/{id}/{file}")
-async def get_file_embed(id:int,file:str):
-    with open(get_existing_filepath(id,file),'rb') as f:
+async def get_file_embed(id: int, file: str):
+    with open(get_existing_filepath(id, file), "rb") as f:
         content = f.read()
-        if file.endswith('.png'):
-            title = os.environ.get("EMBED_TITLE","File Sharing")
-            
+        if file.endswith(".png"):
+            title = os.environ.get("EMBED_TITLE", "File Sharing")
+
             cont = f"""
 <html>
     <head>
@@ -171,10 +203,10 @@ async def get_file_embed(id:int,file:str):
     </body>
 </html>
             """
-            return Response(cont,media_type="text/html")
+            return Response(cont, media_type="text/html")
         else:
-            title = os.environ.get("EMBED_TITLE","File Sharing")
-            
+            title = os.environ.get("EMBED_TITLE", "File Sharing")
+
             cont = f"""
 <html>
     <head>
@@ -190,9 +222,10 @@ async def get_file_embed(id:int,file:str):
     </body>
 </html>
             """
-            return Response(cont,media_type="text/html")
+            return Response(cont, media_type="text/html")
         return content
-    
+
+
 """
 HOW TO USE ALEMBIC:
 
