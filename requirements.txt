@@ -9,3 +9,4 @@ alembic
 Pillow
 aiosqlite
 requests
+bcrypt

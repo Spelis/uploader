@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 from typing import Annotated, Any
 from dotenv import load_dotenv
-from fastapi import Depends, Response
+from fastapi import Depends, Request, Response
 from fastapi import FastAPI as FA
 from fastapi import HTTPException, Security, Header
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -66,7 +66,7 @@ async def read_root():
 
 
 @app.post("/me")  # requires auth
-async def user_info(user: UserDependency):
+async def user_info(user: UserDependency, request: Request):
     # return user
     filesobj = {}
     files_iter: list[File] = await get_files_by_user(user.id)
@@ -76,6 +76,8 @@ async def user_info(user: UserDependency):
             "created_at": datetime.fromtimestamp(i.uploaded_at, timezone.utc).strftime(
                 r"%a %b %d %Y %I:%M:%S %p"
             ),
+            "share_url": f"{request.url.scheme}://{request.url.hostname}/embed/{user.id}/{i.filename}",
+            "raw_url":   f"{request.url.scheme}://{request.url.hostname}/files/{user.id}/{i.filename}"
         }
     return {
         "passwd": user.password,
@@ -200,7 +202,7 @@ async def get_file_embed(id: int, file: str):
     <body>
         Nothing to see here... maybe go to <a href="/docs">/docs?</a><br><br>
         Or view the file <a href="/files/{id}/{file}">here</a>.<br><br>
-        Actually, Heres a preview: <img src="/files/{id}/{file}" alt="Preview not available">
+        Actually, Heres a preview: <img src="/files/{id}/{file}" alt="Preview not available" style="width:100%;">
     </body>
 </html>
             """
