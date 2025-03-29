@@ -51,8 +51,7 @@ elif args.action == "upload":
             "data": base64.b64encode(data),
         },
     )
-    print(os.environ.get("CLITOKEN", ""))
-    print(r.content)
+    print(r.content.decode())
 
 elif args.action == "delete":
     # filename: str
